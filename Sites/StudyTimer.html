@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Timer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #333;
+            color: #fff;
+            position: relative;
+        }
+
+        .timer-container {
+            margin-top: 50px;
+        }
+
+        .timer {
+            font-size: 48px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: black;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #222;
+        }
+
+        .book-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <a href="../Student Organizer.html">
+        <img src="../Images/Book Symbol.jpg" alt="Book Symbol" class="book-icon">
+    </a>
+
+    <div class="timer-container">
+        <h1>Study Timer</h1>
+        <div>
+            <label for="study-time">Study Time (minutes):</label>
+            <input type="number" id="study-time" value="25">
+        </div>
+        <div>
+            <label for="break-time">Break Time (minutes):</label>
+            <input type="number" id="break-time" value="5">
+        </div>
+        <div class="timer">
+            <span id="minutes">25</span>:<span id="seconds">00</span>
+        </div>
+        <button id="start-btn">Start</button>
+        <button id="reset-btn">Reset</button>
+    </div>
+
+    <script>
+        let timer;
+        let isBreak = false;
+        let isRunning = false;
+        let minutes, seconds;
+        let breakCountdown = 0;
+
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const minutesDisplay = document.getElementById('minutes');
+        const secondsDisplay = document.getElementById('seconds');
+        const studyTimeInput = document.getElementById('study-time');
+        const breakTimeInput = document.getElementById('break-time');
+
+        function startTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                timer = setInterval(updateTimer, 1000);
+                startBtn.textContent = 'Pause';
+            } else {
+                isRunning = false;
+                clearInterval(timer);
+                startBtn.textContent = 'Resume';
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            isRunning = false;
+            minutes = parseInt(studyTimeInput.value, 10);
+            seconds = 0;
+            isBreak = false;
+            breakCountdown = 0;
+            updateDisplay();
+            startBtn.textContent = 'Start';
+        }
+
+        function updateTimer() {
+            if (isBreak) {
+                if (minutes === 0 && seconds === 0) {
+                    clearInterval(timer);
+                    isRunning = false;
+                    alert("Break's over! Back to studying.");
+                    isBreak = false;
+                    minutes = parseInt(studyTimeInput.value, 10);
+                    seconds = 0;
+                    updateDisplay();
+                    startTimer(); // Start timer automatically after break ends
+                    return;
+                }
+
+                if (breakCountdown === 30) {
+                    alert("30 seconds left until the timer resumes.");
+                }
+
+                if (seconds === 0) {
+                    minutes--;
+                    seconds = 59;
+                } else {
+                    seconds--;
+                }
+                breakCountdown++;
+            } else {
+                if (minutes === 0 && seconds === 0) {
+                    clearInterval(timer);
+                    isRunning = false;
+                    alert("Time's up! Take a break.");
+                    isBreak = true;
+                    minutes = parseInt(breakTimeInput.value, 10);
+                    seconds = 0;
+                    breakCountdown = 0;
+                    updateDisplay();
+                    startBtn.textContent = 'Start';
+                    return;
+                }
+
+                if (minutes === Math.floor(parseInt(studyTimeInput.value, 10) / 2) && seconds === 0 && !isBreak) {
+                    alert("Halfway through! Take a break.");
+                }
+
+                if (seconds === 0) {
+                    minutes--;
+                    seconds = 59;
+                } else {
+                    seconds--;
+                }
+            }
+
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            minutesDisplay.textContent = padTime(minutes);
+            secondsDisplay.textContent = padTime(seconds);
+        }
+
+        function padTime(time) {
+            return time < 10 ? `0${time}` : time;
+        }
+
+        startBtn.addEventListener('click', startTimer);
+        resetBtn.addEventListener('click', resetTimer);
+        studyTimeInput.addEventListener('change', resetTimer); // Added event listener for study time change
+    </script>
+</body>
+</html>

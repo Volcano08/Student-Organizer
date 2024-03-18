@@ -1,0 +1,200 @@
+User
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TI-36X Pro Calculator</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: gray;
+    }
+    .calculator {
+        width: 400px;
+        margin: 50px auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: black;
+        position: relative; /* Added */
+    }
+    .calculator input[type="button"] {
+        width: calc(25% - 10px);
+        height: 40px;
+        margin: 5px;
+        font-size: 16px;
+        border: none;
+        outline: none;
+        cursor: pointer;
+    }
+    .calculator input[type="text"] {
+        width: calc(100% - 10px);
+        height: 40px;
+        margin-bottom: 10px;
+        padding: 5px;
+        font-size: 18px;
+        text-align: right;
+    }
+    .calculator textarea {
+        width: calc(100% - 10px);
+        height: 100px;
+        margin-bottom: 10px;
+        padding: 5px;
+        font-size: 18px;
+        resize: none;
+    }
+    .book-symbol {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        cursor: pointer;
+    }
+    .clear-button {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body>
+
+<div class="calculator">
+    <input type="button" value="Delete" onclick="deleteLastChar()">
+    <input type="text" id="display" onclick="enableInput()" oninput="updateOutput()">
+    <br>
+    <textarea id="output" readonly></textarea>
+    <br>
+    <input type="button" value="Deg" onclick="toggleDegrees()">
+    <input type="button" value="Rad" onclick="toggleRadians()">
+    <br>
+    <input type="button" value="sin()" onclick="appendToDisplay('sin()')">
+    <input type="button" value="cos()" onclick="appendToDisplay('cos()')">
+    <input type="button" value="tan()" onclick="appendToDisplay('tan()')">
+    <input type="button" value="+" onclick="appendToDisplay('+')">
+    <br>
+    <input type="button" value="Clear" onclick="clearDisplay()">
+    <input type="button" value="AC" onclick="clearAll()">
+    <input type="button" value="(" onclick="appendToDisplay('(')">
+    <input type="button" value=")" onclick="appendToDisplay(')')">
+    <input type="button" value="%" onclick="appendToDisplay('/100*')">
+    <input type="button" value="=" onclick="calculate()">
+    <br>
+    <input type="button" value="7" onclick="appendToDisplay('7')">
+    <input type="button" value="8" onclick="appendToDisplay('8')">
+    <input type="button" value="9" onclick="appendToDisplay('9')">
+    <input type="button" value="-" onclick="appendToDisplay('-')">
+    <br>
+    <input type="button" value="4" onclick="appendToDisplay('4')">
+    <input type="button" value="5" onclick="appendToDisplay('5')">
+    <input type="button" value="6" onclick="appendToDisplay('6')">
+    <input type="button" value="*" onclick="appendToDisplay('*')">
+    <br>
+    <input type="button" value="1" onclick="appendToDisplay('1')">
+    <input type="button" value="2" onclick="appendToDisplay('2')">
+    <input type="button" value="3" onclick="appendToDisplay('3')">
+    <input type="button" value="/" onclick="appendToDisplay('/')">
+    <br>
+    <input type="button" value="0" onclick="appendToDisplay('0')">
+    <input type="button" value="." onclick="appendToDisplay('.')">
+</div>
+<div class="book-symbol">
+    <a href="../Student Organizer.html">
+      <img src="../Images/Book Symbol.jpg" alt="Book Symbol" style="width: 50px; height: auto;">
+    </a>
+</div>
+
+<script>
+    let degreesMode = true;
+    let ansValue = '';
+
+    function toggleDegrees() {
+        degreesMode = true;
+        updateDegreeDisplay();
+    }
+
+    function toggleRadians() {
+        degreesMode = false;
+        updateDegreeDisplay();
+    }
+
+    function updateDegreeDisplay() {
+        let display = document.getElementById('display');
+        let currentValue = display.value;
+        if (degreesMode) {
+            display.value = currentValue.replace(/rad/g, '°');
+        } else {
+            display.value = currentValue.replace(/°/g, 'rad');
+        }
+    }
+
+    function appendToDisplay(value) {
+        let display = document.getElementById('display');
+        if (value === 'sin()' || value === 'cos()' || value === 'tan()') {
+            let currentValue = display.value;
+            let number = currentValue.replace(/[^\d.-]/g, ''); // Extract the number from the display
+            let radianValue = parseFloat(number) * (Math.PI / 180); // Convert to radians
+            let result;
+            switch (value) {
+                case 'sin()':
+                    result = Math.sin(radianValue);
+                    break;
+                case 'cos()':
+                    result = Math.cos(radianValue);
+                    break;
+                case 'tan()':
+                    result = Math.tan(radianValue);
+                    break;
+                default:
+                    break;
+            }
+            display.value = result.toFixed(4); // Display result with 4 decimal places
+        } else {
+            display.value += value;
+        }
+    }
+
+    function deleteLastChar() {
+        let display = document.getElementById('display');
+        display.value = display.value.slice(0, -1);
+    }
+
+    function clearDisplay() {
+        let display = document.getElementById('display');
+        display.value = '';
+    }
+
+    function clearAll() {
+        document.getElementById('display').value = '';
+        document.getElementById('output').value = '';
+    }
+
+    function calculate() {
+        try {
+            let equation = document.getElementById('display').value;
+            let result = eval(equation);
+            ansValue = result;
+            document.getElementById('output').value = result;
+        } catch (err) {
+            console.error("Error:", err);
+            document.getElementById('output').value = 'Error';
+        }
+    }
+
+    function useAns() {
+        document.getElementById('display').value += ansValue;
+    }
+
+    function enableInput() {
+        document.getElementById('display').removeAttribute('readonly');
+    }
+
+    function updateOutput() {
+        document.getElementById('output').value = ''; // Clear output when display is modified
+    }
+</script>
+
+</body>
+</html>

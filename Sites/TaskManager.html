@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Task Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #333; /* Changed background color to dark grey */
+            color: #fff; /* Changed text color to white */
+        }
+
+        .container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.1); /* Added transparency to the container background */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        input[type="text"], input[type="time"] {
+            padding: 10px;
+            margin-bottom: 10px;
+            width: 70%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            color: #333; /* Changed task text color */
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: #888; /* Changed color of completed tasks to gray */
+        }
+
+        .book-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            width: 30px; /* Adjusted width of the book icon */
+            height: auto; /* Ensured aspect ratio is maintained */
+        }
+    </style>
+</head>
+<body>
+    <img src="../Images/Book Symbol.jpg" alt="Book Symbol" class="book-icon" onclick="openStudentOrganizer()">
+    <div class="container">
+        <h1>Daily Task Manager</h1>
+        <input type="text" id="taskInput" placeholder="Enter task...">
+        <input type="time" id="taskTime" placeholder="Enter task time...">
+        <button onclick="addTask()">Add Task</button>
+        <ul id="taskList"></ul>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            loadTasks();
+        });
+
+        function addTask() {
+            var taskInput = document.getElementById("taskInput");
+            var taskTime = document.getElementById("taskTime");
+            var taskList = document.getElementById("taskList");
+
+            if (taskInput.value.trim() === "") {
+                alert("Please enter a task.");
+                return;
+            }
+
+            var li = document.createElement("li");
+            var taskText = taskInput.value;
+            var taskSchedule = taskTime.value;
+
+            // Convert time to AM/PM format
+            var timeArray = taskSchedule.split(":");
+            var hours = parseInt(timeArray[0]);
+            var minutes = timeArray[1];
+            var ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // Handle midnight (0 hours)
+            var formattedTime = hours + ':' + minutes + ' ' + ampm;
+
+            li.innerHTML = `<input type="checkbox"><span>${taskText}</span> - <span>${formattedTime}</span>`;
+            
+            li.querySelector("input[type='checkbox']").addEventListener("click", function(event) {
+                event.stopPropagation();
+                if (confirm("Are you sure you want to mark this task as completed?")) {
+                    taskList.removeChild(li);
+                    saveTasks();
+                } else {
+                    this.checked = false;
+                }
+            });
+
+            taskList.appendChild(li);
+            taskInput.value = "";
+            taskTime.value = "";
+
+            saveTasks();
+            checkReminders(taskSchedule);
+        }
+
+        function saveTasks() {
+            var taskList = document.getElementById("taskList");
+            var tasks = [];
+
+            taskList.querySelectorAll("li").forEach(function(task) {
+                var taskText = task.querySelector("span:nth-child(2)").innerText;
+                var taskSchedule = task.querySelector("span:nth-child(3)").innerText;
+                tasks.push({ text: taskText, schedule: taskSchedule });
+            });
+
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            var taskList = document.getElementById("taskList");
+            var tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+            tasks.forEach(function(task) {
+                var li = document.createElement("li");
+                li.innerHTML = `<input type="checkbox"><span>${task.text}</span> - <span>${task.schedule}</span>`;
+
+                li.querySelector("input[type='checkbox']").addEventListener("click", function(event) {
+                    event.stopPropagation();
+                    if (confirm("Are you sure you want to mark this task as completed?")) {
+                        taskList.removeChild(li);
+                        saveTasks();
+                    } else {
+                        this.checked = false;
+                    }
+                });
+
+                taskList.appendChild(li);
+            });
+        }
+
+        function checkReminders(taskTime) {
+            var now = new Date();
+            var scheduleTime = new Date();
+            var taskHour = parseInt(taskTime.split(':')[0]);
+            var taskMinute = parseInt(taskTime.split(':')[1]);
+
+            scheduleTime.setHours(taskHour, taskMinute, 0, 0);
+
+            var timeDiff = scheduleTime - now;
+
+            if (timeDiff > 0) {
+                if (timeDiff <= 3600000) { // 1 hour
+                    setTimeout(function() {
+                        alert("You have 1 hour left to finish the task!");
+                    }, timeDiff);
+                }
+                if (timeDiff <= 1800000) { // 30 minutes
+                    setTimeout(function() {
+                        alert("You have 30 minutes left to finish the task!");
+                    }, timeDiff - 1800000);
+                }
+                if (timeDiff <= 900000) { // 15 minutes
+                    setTimeout(function() {
+                        alert("You have 15 minutes left to finish the task!");
+                    }, timeDiff - 900000);
+                }
+            } else {
+                alert("The task time has passed!");
+            }
+        }
+
+        function openStudentOrganizer() {
+            window.location.href = "../Student Organizer.html";
+        }
+    </script>
+</body>
+</html>

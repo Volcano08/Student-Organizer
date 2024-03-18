@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Line Drawing</title>
+<style>
+  #canvas-container {
+    position: relative;
+    width: 800px;
+    height: 600px;
+    border: 1px solid #000;
+  }
+
+  #canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+</style>
+</head>
+<body>
+
+<div id="canvas-container">
+  <canvas id="canvas" width="800" height="600"></canvas>
+</div>
+<button id="add-line-btn">Add Line</button>
+
+<script>
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+let lines = [];
+let selectedLine = null;
+let dragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragStartLine = null;
+let dragEndPoint = null;
+
+function addLine(x1, y1, x2, y2) {
+  lines.push({ x1, y1, x2, y2 });
+  drawLines();
+}
+
+function drawLines() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  lines.forEach(line => {
+    ctx.beginPath();
+    ctx.moveTo(line.x1, line.y1);
+    ctx.lineTo(line.x2, line.y2);
+    ctx.stroke();
+  });
+}
+
+function findLineUnderMouse(x, y) {
+  return lines.find(line => {
+    return (
+      x >= Math.min(line.x1, line.x2) &&
+      x <= Math.max(line.x1, line.x2) &&
+      y >= Math.min(line.y1, line.y2) &&
+      y <= Math.max(line.y1, line.y2)
+    );
+  });
+}
+
+function distance(x1, y1, x2, y2) {
+  return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+}
+
+canvas.addEventListener("mousedown", function(event) {
+  let mouseX = event.offsetX;
+  let mouseY = event.offsetY;
+  selectedLine = findLineUnderMouse(mouseX, mouseY);
+  if (selectedLine) {
+    let distanceToStart = distance(mouseX, mouseY, selectedLine.x1, selectedLine.y1);
+    let distanceToEnd = distance(mouseX, mouseY, selectedLine.x2, selectedLine.y2);
+    if (distanceToStart < distanceToEnd && distanceToStart < 10) {
+      dragEndPoint = "start";
+    } else if (distanceToEnd < distanceToStart && distanceToEnd < 10) {
+      dragEndPoint = "end";
+    } else {
+      dragging = true;
+      dragStartX = mouseX;
+      dragStartY = mouseY;
+      dragStartLine = Object.assign({}, selectedLine);
+    }
+  }
+});
+
+canvas.addEventListener("mousemove", function(event) {
+  let mouseX = event.offsetX;
+  let mouseY = event.offsetY;
+  if (dragging && selectedLine) {
+    let deltaX = mouseX - dragStartX;
+    let deltaY = mouseY - dragStartY;
+    selectedLine.x1 = dragStartLine.x1 + deltaX;
+    selectedLine.y1 = dragStartLine.y1 + deltaY;
+    selectedLine.x2 = dragStartLine.x2 + deltaX;
+    selectedLine.y2 = dragStartLine.y2 + deltaY;
+    drawLines();
+  } else if (dragEndPoint && selectedLine) {
+    if (dragEndPoint === "start") {
+      selectedLine.x1 = mouseX;
+      selectedLine.y1 = mouseY;
+    } else {
+      selectedLine.x2 = mouseX;
+      selectedLine.y2 = mouseY;
+    }
+    drawLines();
+  }
+});
+
+canvas.addEventListener("mouseup", function() {
+  dragging = false;
+  selectedLine = null;
+  dragEndPoint = null;
+});
+
+document.getElementById("add-line-btn").addEventListener("click", function() {
+  addLine(100, 100, 200, 200); // Example coordinates
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoloScholar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #333;
+        }
+
+        .dashboard-container {
+            display: flex;
+            height: calc(100vh - 40px);
+        }
+
+        .side-tabs {
+            width: 100px;
+            background-color: #ccc;
+            padding-top: 20px;
+        }
+
+        .tab {
+            margin-bottom: 10px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            background-color: #ddd;
+            border-radius: 0 20px 20px 0;
+        }
+
+        .tab.active {
+            background-color: #fff;
+        }
+
+        .section-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .section {
+            padding: 20px;
+            border-radius: 20px;
+            background-color: #fff;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 70%;
+            padding: 8px;
+            margin-right: 5px;
+        }
+
+        button {
+            padding: 8px 15px;
+            background-color: #000;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #333;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        ul li {
+            margin-bottom: 5px;
+        }
+
+        .resource-checkbox {
+            margin-right: 5px;
+        }
+
+        .resource-library ul li a {
+            text-decoration: none;
+            color: #000;
+            font-weight: bold;
+        }
+
+        /* Progress Tracking Styles */
+        .progress-container {
+            text-align: center;
+        }
+
+        .progress-chart {
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #4caf50;
+            width: 0;
+            transition: width 1s ease-in-out;
+        }
+
+        .progress-label {
+            font-size: 14px;
+            color: #333;
+            padding: 5px 0;
+        }
+
+        /* Symbol in top right corner */
+        .symbol-link {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+
+        /* Complete button */
+        .complete-button {
+            background-color: #000;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .complete-button:hover {
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+    <a href="../Student Organizer.html" class="symbol-link" target="_blank">
+        <img src="../Images/Book Symbol.jpg" alt="Book Symbol" width="40" height="40">
+    </a>
+    <div class="dashboard-container">
+        <div class="side-tabs">
+            <div class="tab active" onclick="showSection('dashboard')">Dashboard</div>
+            <div class="tab" onclick="showSection('resourceLibrary')">Resource Library</div>
+            <div class="tab" onclick="showSection('progressTracking')">Progress Tracking</div>
+        </div>
+        <div class="section-container">
+            <div class="dashboard section active" id="dashboard">
+                <h1>Welcome to Your Personalized Dashboard</h1>
+                <div class="goals">
+                    <h2>Goals</h2>
+                    <input type="text" id="goalInput" placeholder="Enter your goal...">
+                    <input type="number" id="goalDuration" placeholder="Enter duration">
+                    <select id="durationUnit">
+                        <option value="days">Days</option>
+                        <option value="weeks">Weeks</option>
+                        <option value="months">Months</option>
+                    </select>
+                    <button onclick="addGoal()">Add Goal</button>
+                    <ul id="goalList"></ul>
+                </div>
+                <div class="recent-activities">
+                    <h2>Recent Activities</h2>
+                    <ul id="activityList"></ul>
+                </div>
+            </div>
+            <div class="resource-library section" id="resourceLibrary">
+                <h1>Resource Library</h1>
+                <input type="text" id="resourceName" placeholder="Resource name...">
+                <input type="text" id="resourceURL" placeholder="Resource URL...">
+                <button onclick="addResource()">Add Resource</button>
+                <button onclick="removeResource()">Remove Resource</button>
+                <ul id="resourceList"></ul>
+            </div>
+            <div class="progress-tracking section" id="progressTracking">
+                <h1>Progress Tracking</h1>
+                <div class="progress-container">
+                    <div class="progress-label">Your Progress: 50%</div>
+                    <div class="progress-chart">
+                        <div class="progress-bar" style="width: 50%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function showSection(sectionId) {
+            var sections = document.querySelectorAll('.section');
+            var tabs = document.querySelectorAll('.tab');
+            sections.forEach(function(section) {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+            tabs.forEach(function(tab) {
+                if (tab.textContent.toLowerCase() === sectionId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+        }
+
+        function addGoal() {
+            var input = document.getElementById("goalInput").value;
+            var duration = parseInt(document.getElementById("goalDuration").value);
+            var durationUnit = document.getElementById("durationUnit").value;
+            var goals = JSON.parse(localStorage.getItem("goals")) || [];
+            
+            // Get the current date
+            var currentDate = new Date();
+
+            // Add the specified duration based on the selected unit
+            switch (durationUnit) {
+                case 'days':
+                    currentDate.setDate(currentDate.getDate() + duration);
+                    break;
+                case 'weeks':
+                    currentDate.setDate(currentDate.getDate() + duration * 7);
+                    break;
+                case 'months':
+                    currentDate.setMonth(currentDate.getMonth() + duration);
+                    break;
+                default:
+                    break;
+            }
+
+            goals.push({
+                name: input,
+                dueDate: currentDate.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' }) // Format the due date
+            });
+            localStorage.setItem("goals", JSON.stringify(goals));
+            displayGoals();
+            document.getElementById("goalInput").value = "";
+            document.getElementById("goalDuration").value = "";
+        }
+
+        function displayGoals() {
+            var goals = JSON.parse(localStorage.getItem("goals")) || [];
+            var ul = document.getElementById("goalList");
+            ul.innerHTML = "";
+            goals.forEach(function (goal, index) {
+                var li = document.createElement("li");
+                li.textContent = `${goal.name} (Due by ${goal.dueDate})`;
+                var completeButton = document.createElement("button");
+                completeButton.textContent = "Complete";
+                completeButton.classList.add('complete-button');
+                completeButton.onclick = function() {
+                    removeGoal(index);
+                };
+                li.appendChild(completeButton);
+                ul.appendChild(li);
+            });
+        }
+
+        function removeGoal(index) {
+            var goals = JSON.parse(localStorage.getItem("goals")) || [];
+            goals.splice(index, 1);
+            localStorage.setItem("goals", JSON.stringify(goals));
+            displayGoals();
+        }
+
+        function addResource() {
+            var resourceName = document.getElementById("resourceName").value;
+            var resourceURL = document.getElementById("resourceURL").value;
+            var resources = JSON.parse(localStorage.getItem("resources")) || [];
+            resources.push({
+                name: resourceName,
+                url: resourceURL
+            });
+            localStorage.setItem("resources", JSON.stringify(resources));
+            displayResources();
+            document.getElementById("resourceName").value = "";
+            document.getElementById("resourceURL").value = "";
+        }
+
+        function removeResource() {
+            var checkboxes = document.querySelectorAll('.resource-checkbox');
+            var resources = JSON.parse(localStorage.getItem("resources")) || [];
+            checkboxes.forEach(function(checkbox, index) {
+                if (checkbox.checked) {
+                    resources.splice(index, 1);
+                }
+            });
+            localStorage.setItem("resources", JSON.stringify(resources));
+            displayResources();
+        }
+
+        function displayResources() {
+            var resources = JSON.parse(localStorage.getItem("resources")) || [];
+            var ul = document.getElementById("resourceList");
+            ul.innerHTML = "";
+            resources.forEach(function(resource) {
+                var li = document.createElement("li");
+                var checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.classList.add('resource-checkbox');
+                li.appendChild(checkbox);
+                var a = document.createElement("a");
+                a.href = resource.url.startsWith('http') ? resource.url : 'http://' + resource.url;
+                a.target = "_blank"; // Open in new tab
+                a.textContent = resource.name;
+                li.appendChild(a);
+                ul.appendChild(li);
+            });
+        }
+
+        window.onload = function () {
+            displayGoals();
+            displayResources();
+            // Initialize progress tracking elements if needed
+        };
+    </script>
+</body>
+</html>

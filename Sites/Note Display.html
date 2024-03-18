@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Note</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            position: relative; /* Make the body position relative for absolute positioning */
+        }
+        h1 {
+            text-align: center;
+        }
+        .note-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            min-height: 200px; /* Ensures the container expands vertically */
+        }
+        .note-content {
+            white-space: pre-line; /* Preserve line breaks */
+        }
+        .back-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            width: 50px; /* Adjust width as needed */
+            height: auto; /* Maintain aspect ratio */
+        }
+    </style>
+</head>
+<body>
+    <h1>Note Content</h1>
+    <div class="note-container" id="noteContainer">
+        <h2 id="noteTitle"></h2>
+        <div id="noteContent" class="note-content"></div>
+    </div>
+    <a href="Note Organizer.html" class="back-button">
+        <img src="../Images/Back Button.jpg" alt="Back to Note Organizer" style="width: 50px; height: auto;">
+    </a>
+    <script>
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const title = urlParams.get('title');
+            const content = urlParams.get('content');
+
+            if (title && content) {
+                document.getElementById("noteTitle").textContent = title;
+
+                // Format and display the content vertically
+                document.getElementById("noteContent").innerHTML = formatContent(content);
+            } else {
+                document.getElementById("noteContainer").innerHTML = "<p>No note content available.</p>";
+            }
+
+            // Set the source of the back button image
+            document.getElementById("backButton").src = "Images/Note Symbol.jpg";
+
+            // Add click event listener to the back button
+            document.getElementById("backButton").addEventListener("click", function() {
+                window.location.href = "Note Organizer.html"; // Replace with the correct file name
+            });
+        }
+
+        function formatContent(content) {
+            // Replace <ul> and <ol> tags with line breaks
+            content = content.replace(/<\/?ul.*?>/g, '\n');
+            content = content.replace(/<\/?ol.*?>/g, '\n');
+            
+            // Replace <li> tags with bullets
+            content = content.replace(/<li>/g, '• ');
+            content = content.replace(/<\/li>/g, '\n');
+            
+            // Replace <table> tags with line breaks
+            content = content.replace(/<table.*?>/g, '\n');
+            content = content.replace(/<\/table>/g, '\n');
+            
+            // Replace <tr> tags with line breaks
+            content = content.replace(/<tr.*?>/g, '\n');
+            content = content.replace(/<\/tr>/g, '\n');
+
+            // Replace <td> tags with tabs
+            content = content.replace(/<td>/g, '\t');
+            content = content.replace(/<\/td>/g, '');
+
+            return content;
+        }
+    </script>
+</body>
+</html>

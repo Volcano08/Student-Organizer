@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoloSnake: A Classic Snake Game for One</title>
+    <style>
+        /* CSS styles */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #333;
+            color: white;
+            padding: 0;
+            margin: 0;
+            position: relative;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        #game-container {
+            margin: 20px auto;
+            border: 2px solid #fff;
+            width: 400px;
+            height: 400px;
+            display: grid;
+            grid-template-columns: repeat(20, 20px);
+            grid-template-rows: repeat(20, 20px);
+            gap: 1px;
+            background-color: #555;
+        }
+
+        .snake-head {
+            background-color: darkgreen;
+            width: 20px;
+            height: 20px;
+            position: relative;
+            border-radius: 50%;
+        }
+
+        .snake-body {
+            background-color: green;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            position: relative;
+        }
+
+        .food {
+            width: 15px;
+            height: 15px;
+            position: relative;
+            border-radius: 50%;
+        }
+
+        .apple {
+            background-color: red;
+        }
+
+        .orange {
+            background-color: orange;
+        }
+
+        .banana {
+            background-color: yellow;
+        }
+
+        .pear {
+            background-color: lime;
+        }
+
+        .blueberry {
+            background-color: blue;
+        }
+
+        .grape {
+            background-color: purple;
+        }
+
+        #score {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+
+        #start-buttons {
+            margin-top: 20px;
+        }
+
+        .start-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        #book-link {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SoloSnake: A Classic Snake Game for One</h1>
+        <div id="game-container"></div>
+        <div id="score">Score: 0</div>
+        <div id="start-buttons">
+            <button class="start-button" onclick="startGame('normal')">Normal Mode</button>
+            <button class="start-button" onclick="startGame('fast')">Fast Mode</button>
+            <button class="start-button" onclick="startGame('speed')">Speed % Mode</button>
+        </div>
+    </div>
+
+    <a id="book-link" href="../Student Organizer.html" target="_blank"><img src="../Images/Book Symbol.jpg" alt="Book Symbol" width="50"></a>
+    
+    <script>
+        // JavaScript code
+        // Define variables
+        let gameContainer = document.getElementById("game-container");
+        let scoreDisplay = document.getElementById("score");
+        let startButtons = document.querySelectorAll(".start-button");
+        let snake, food, dx, dy, gameSpeed, score, gameRunning, currentMode, currentFruitClass;
+
+        // Set up event listeners for start buttons
+        startButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                startButtons.forEach(btn => btn.disabled = true); // Disable other buttons while game is running
+            });
+        });
+
+        // Function to start the game
+        function startGame(mode) {
+            if (!gameRunning) {
+                gameRunning = true;
+                score = 0;
+                snake = [{ x: 10, y: 10 }];
+                dx = 1;
+                dy = 0;
+                currentMode = mode;
+                gameSpeed = mode === "fast" ? 50 : 100;
+                generateFood();
+                updateGame(mode);
+            }
+        }
+
+        // Function to update the game state
+        function updateGame(mode) {
+            // Move the snake
+            let head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            snake.unshift(head);
+
+            // Check for collisions
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                scoreDisplay.textContent = "Score: " + score;
+                if (mode === "speed") {
+                    gameSpeed *= 0.95; // Increase speed by 5%
+                }
+                generateFood();
+            } else {
+                snake.pop();
+            }
+
+            // Check for game over
+            if (isCollision()) {
+                gameRunning = false;
+                let restart = confirm("Game Over! Your score: " + score + ". Do you want to play again?");
+                if (restart) {
+                    startButtons.forEach(btn => btn.disabled = true); // Disable other buttons while game is running
+                    startGame(currentMode);
+                    return;
+                } else {
+                    startButtons.forEach(btn => btn.disabled = false); // Enable buttons after game over
+                    return;
+                }
+            }
+
+            // Render the game
+            renderGame();
+            if (gameRunning) {
+                setTimeout(() => updateGame(mode), gameSpeed);
+            }
+        }
+
+        // Function to render the game
+        function renderGame() {
+            gameContainer.innerHTML = "";
+            snake.forEach((segment, index) => {
+                let div = document.createElement("div");
+                div.style.gridColumn = segment.x;
+                div.style.gridRow = segment.y;
+                div.classList.add(index === 0 ? "snake-head" : "snake-body");
+                gameContainer.appendChild(div);
+            });
+            let foodDiv = document.createElement("div");
+            foodDiv.style.gridColumn = food.x;
+            foodDiv.style.gridRow = food.y;
+            foodDiv.classList.add("food", currentFruitClass);
+            gameContainer.appendChild(foodDiv);
+        }
+
+        // Function to generate food
+        function generateFood() {
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * 18) + 2; // Avoid spawning too close to the border
+                y = Math.floor(Math.random() * 18) + 2; // Avoid spawning too close to the border
+            } while (isFoodOnSnake(x, y));
+            food = { x, y };
+            currentFruitClass = getRandomFruitClass();
+        }
+
+        // Function to check if food is on the snake
+        function isFoodOnSnake(x, y) {
+            return snake.some(segment => segment.x === x && segment.y === y);
+        }
+
+        // Function to check if snake is outside game bounds
+        function isSnakeOutsideBounds(x, y) {
+            return x < 1 || x > 20 || y < 1 || y > 20;
+        }
+
+        // Function to handle keyboard input for changing direction
+        document.addEventListener("keydown", changeDirection);
+
+        function changeDirection(event) {
+            const LEFT_KEY = 37;
+            const RIGHT_KEY = 39;
+            const UP_KEY = 38;
+            const DOWN_KEY = 40;
+
+            if (!gameRunning) return;
+
+            const keyPressed = event.keyCode;
+
+            if (keyPressed === LEFT_KEY && dx !== 1) {
+                dx = -1;
+                dy = 0;
+            }
+
+            if (keyPressed === RIGHT_KEY && dx !== -1) {
+                dx = 1;
+                dy = 0;
+            }
+
+            if (keyPressed === UP_KEY && dy !== 1) {
+                dx = 0;
+                dy = -1;
+            }
+
+            if (keyPressed === DOWN_KEY && dy !== -1) {
+                dx = 0;
+                dy = 1;
+            }
+        }
+
+        // Function to check for collisions with walls or the snake's body
+        function isCollision() {
+            let head = snake[0];
+            if (head.x < 1 || head.x > 20 || head.y < 1 || head.y > 20) {
+                return true;
+            }
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Function to get a random fruit CSS class
+        function getRandomFruitClass() {
+            const fruits = ["apple", "orange", "banana", "pear", "blueberry", "grape"];
+            const randomIndex = Math.floor(Math.random() * fruits.length);
+            return fruits[randomIndex];
+        }
+    </script>
+</body>
+</html>
