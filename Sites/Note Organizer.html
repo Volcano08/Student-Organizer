@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes Organizer</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .book-symbol {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        h2 {
+            margin-top: 40px;
+            color: #555;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: calc(100% - 10px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 200px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+        }
+        input[type="text"], input[type="submit"], button {
+            width: calc(100% - 10px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        li {
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .tags {
+            font-weight: bold;
+        }
+        .tagLink {
+            cursor: pointer;
+            color: #007BFF;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .noteContent {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #c82333;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: fixed;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            font-family: "Courier New", Courier, monospace;
+            word-wrap: break-word;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .notification {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+        }
+        .rich-text-editor {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            min-height: 200px;
+            padding: 10px;
+            background-color: white;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification"></div>
+    <div class="container">
+        <h1>Notes Organizer</h1>
+        <form id="noteForm">
+            <input type="text" id="titleInput" placeholder="Enter title">
+            <div id="noteInput" class="rich-text-editor" contenteditable="true" placeholder="Enter your note"></div>
+            <div>
+                <button type="button" onclick="insertNumberedList()">Numbered List</button>
+                <button type="button" onclick="insertAlphabeticalList()">Alphabetical List</button>
+                <button type="button" onclick="insertBulletList()">Bullet List</button>
+                <button type="button" onclick="insertTable()">Table</button>
+            </div>
+            <div id="mainTagsContainer">
+                <label>Main Tags:</label>
+                <div class="tagInputContainer">
+                    <input type="text" class="mainTagInput" placeholder="Enter main tag">
+                    <button type="button" onclick="addMainTagInput()">Add</button>
+                </div>
+            </div>
+            <div id="subTagsContainer">
+                <label>Subtags:</label>
+            </div>
+            <button type="button" onclick="addSubTagInput()">Add Subtag</button>
+            <input type="submit" value="Add Note">
+        </form>
+        <h2>Search Notes</h2>
+        <button onclick="goBack()">Back</button>
+        <div id="searchTagsContainer"></div>
+        <ul id="searchResults"></ul>
+    </div>
+    <div class="book-symbol">
+        <a href="../Student Organizer.html">
+            <img src="../Images/Book Symbol.jpg" alt="Book Symbol" style="width: 50px; height: auto;">
+        </a>
+    </div>
+
+    <script>
+        let notes = [];
+        let currentUser = null;
+        let searchStack = [];
+
+        // Load notes and user from localStorage when the page loads
+        window.onload = function() {
+            if(localStorage.getItem("notes")) {
+                notes = JSON.parse(localStorage.getItem("notes"));
+                displaySearchTags();
+            }
+            if(localStorage.getItem("currentUser")) {
+                currentUser = JSON.parse(localStorage.getItem("currentUser"));
+                displayUser();
+            }
+        }
+
+        // Save notes and user to localStorage whenever notes or user are updated
+        function saveNotes() {
+            localStorage.setItem("notes", JSON.stringify(notes));
+        }
+
+        function saveUser() {
+            localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        }
+
+        function displayUser() {
+            const userDisplay = document.getElementById("userDisplay");
+            userDisplay.innerHTML = `<p><strong>Logged in as:</strong> ${currentUser.username}</p>`;
+        }
+
+        document.getElementById("noteForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const titleInput = document.getElementById("titleInput").value.trim();
+            const noteInput = document.getElementById("noteInput").innerHTML.trim();
+            const mainTags = document.querySelectorAll(".mainTagInput");
+            const subTagsInputs = document.querySelectorAll(".subTagInput");
+            const mainTagsArray = [];
+            const subTagsArray = [];
+            mainTags.forEach(tag => {
+                if(tag.value.trim() !== "") {
+                    mainTagsArray.push(tag.value.trim());
+                }
+            });
+            subTagsInputs.forEach(input => {
+                if(input.value.trim() !== "") {
+                    subTagsArray.push(input.value.trim());
+                }
+            });
+            const note = { title: titleInput, note: noteInput, mainTags: mainTagsArray, subTags: subTagsArray };
+            notes.push(note);
+            saveNotes();
+            displaySearchTags();
+            document.getElementById("titleInput").value = "";
+            document.getElementById("noteInput").innerHTML = "";
+            document.querySelectorAll(".mainTagInput").forEach(input => input.parentNode.removeChild(input));
+            document.querySelectorAll(".subTagInput").forEach(input => input.parentNode.removeChild(input));
+            showNotification('Note added successfully!');
+        });
+
+        function displaySearchTags() {
+            const searchTagsContainer = document.getElementById("searchTagsContainer");
+            searchTagsContainer.innerHTML = "";
+            const mainTags = getAllMainTags();
+            mainTags.forEach(tag => {
+                const tagLink = document.createElement("span");
+                tagLink.classList.add("tagLink");
+                tagLink.textContent = tag;
+                tagLink.onclick = function() {
+                    searchNotesByTag(tag);
+                };
+                searchTagsContainer.appendChild(tagLink);
+            });
+        }
+
+        function getAllMainTags() {
+            const mainTagsSet = new Set();
+            notes.forEach(note => {
+                note.mainTags.forEach(tag => {
+                    mainTagsSet.add(tag);
+                });
+            });
+            return Array.from(mainTagsSet);
+        }
+
+        function searchNotesByTag(tag) {
+            const searchResults = document.getElementById("searchResults");
+            searchResults.innerHTML = "";
+            const filteredNotes = notes.filter(note => note.mainTags.includes(tag));
+            if(filteredNotes.length === 0) {
+                const li = document.createElement("li");
+                li.textContent = "No notes found.";
+                searchResults.appendChild(li);
+            } else {
+                filteredNotes.forEach(note => {
+                    const li = document.createElement("li");
+                    const noteTitle = document.createElement("span");
+                    noteTitle.textContent = note.title;
+                    noteTitle.classList.add("noteLink");
+                    noteTitle.onclick = function() {
+                        displayNoteContent(note.title, note.note);
+                    };
+                    li.appendChild(noteTitle);
+                    const tagsSpan = document.createElement("span");
+                    tagsSpan.classList.add("tags");
+                    tagsSpan.textContent = ` (Main Tags: ${note.mainTags.join(", ")}, Subtags: ${note.subTags.join(", ")})`;
+                    li.appendChild(tagsSpan);
+                    const deleteButton = document.createElement("button");
+                    deleteButton.textContent = "Delete";
+                    deleteButton.onclick = function() {
+                        deleteNote(note.title);
+                    };
+                    li.appendChild(deleteButton);
+                    searchResults.appendChild(li);
+                });
+            }
+            // Push current search state onto stack
+            searchStack.push(tag);
+        }
+
+        function goBack() {
+            if (searchStack.length > 1) {
+                // Pop the current search state
+                searchStack.pop();
+                // Get the previous search state
+                const prevSearch = searchStack.pop();
+                // Display notes based on the previous search state
+                searchNotesByTag(prevSearch);
+            } else {
+                // If only one item is left in the stack, just display the initial search tags
+                displaySearchTags();
+            }
+        }
+
+        // Function to delete a note
+        function deleteNote(title) {
+            notes = notes.filter(note => note.title !== title);
+            saveNotes();
+            displaySearchTags();
+            updateMainTagsDisplay();
+            showNotification('Note deleted successfully!');
+        }
+
+        // Function to display note content
+        function displayNoteContent(title, content) {
+            alert('Title: ' + title + '\n\nContent: ' + content);
+        }
+
+        function addMainTagInput() {
+            const mainTagsContainer = document.getElementById("mainTagsContainer");
+            const tagInputContainer = document.createElement("div");
+            tagInputContainer.classList.add("tagInputContainer");
+            const input = document.createElement("input");
+            input.type = "text";
+            input.classList.add("mainTagInput");
+            input.placeholder = "Enter main tag";
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = "Remove";
+            button.onclick = function() {
+                tagInputContainer.parentNode.removeChild(tagInputContainer);
+            };
+            tagInputContainer.appendChild(input);
+            tagInputContainer.appendChild(button);
+            mainTagsContainer.appendChild(tagInputContainer);
+        }
+
+        function addSubTagInput() {
+            const subTagsContainer = document.getElementById("subTagsContainer");
+            const input = document.createElement("input");
+            input.type = "text";
+            input.classList.add("subTagInput");
+            input.placeholder = "Enter subtag";
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = "Remove";
+            button.onclick = function() {
+                input.parentNode.removeChild(input);
+                button.parentNode.removeChild(button);
+            };
+            subTagsContainer.appendChild(input);
+            subTagsContainer.appendChild(button);
+        }
+
+        // Function to insert numbered list
+        function insertNumberedList() {
+            const numItems = prompt("How many items do you want in the numbered list?");
+            if (numItems === null || numItems === "") return;
+
+            const textarea = document.getElementById("noteInput");
+            const cursorPosition = textarea.selectionStart;
+            let listContent = "";
+            for (let i = 1; i <= numItems; i++) {
+                listContent += `${i}. List item<br>`;
+            }
+            const text = textarea.innerHTML;
+            const newText = text.slice(0, cursorPosition) + listContent + text.slice(cursorPosition);
+            textarea.innerHTML = newText;
+        }
+
+        // Function to insert alphabetical list
+        function insertAlphabeticalList() {
+            const numItems = prompt("How many items do you want in the alphabetical list?");
+            if (numItems === null || numItems === "") return;
+
+            const textarea = document.getElementById("noteInput");
+            const cursorPosition = textarea.selectionStart;
+            let listContent = "";
+            for (let i = 0; i < numItems; i++) {
+                listContent += `${String.fromCharCode(97 + i)}. List item<br>`;
+            }
+            const text = textarea.innerHTML;
+            const newText = text.slice(0, cursorPosition) + listContent + text.slice(cursorPosition);
+            textarea.innerHTML = newText;
+        }
+
+        // Function to insert bullet point list
+        function insertBulletList() {
+            const numItems = prompt("How many items do you want in the bullet point list?");
+            if (numItems === null || numItems === "") return;
+
+            const textarea = document.getElementById("noteInput");
+            const cursorPosition = textarea.selectionStart;
+            let listContent = "";
+            for (let i = 0; i < numItems; i++) {
+                listContent += `• List item<br>`;
+            }
+            const text = textarea.innerHTML;
+            const newText = text.slice(0, cursorPosition) + listContent + text.slice(cursorPosition);
+            textarea.innerHTML = newText;
+        }
+
+        // Function to insert table
+        function insertTable() {
+            const numRows = prompt("How many rows do you want in the table?");
+            if (numRows === null || numRows === "") return;
+            const numCols = prompt("How many columns do you want in the table?");
+            if (numCols === null || numCols === "") return;
+
+            const textarea = document.getElementById("noteInput");
+            const cursorPosition = textarea.selectionStart;
+            let tableContent = "<table>";
+
+            for (let i = 0; i < numRows; i++) {
+                tableContent += "<tr>";
+                for (let j = 0; j < numCols; j++) {
+                    tableContent += `<td>Cell ${i + 1}-${j + 1}</td>`;
+                }
+                tableContent += "</tr>";
+            }
+            tableContent += "</table>";
+
+            const text = textarea.innerHTML;
+            const newText = text.slice(0, cursorPosition) + tableContent + text.slice(cursorPosition);
+            textarea.innerHTML = newText;
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById("notification");
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

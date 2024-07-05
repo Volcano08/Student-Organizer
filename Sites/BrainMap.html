@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrainMap: Your Ultimate Brainstorming and Mind Mapping Tool</title>
+  <style>
+    /* Styles */
+    body {
+      font-family: 'Open Sans', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f0;
+      color: #333;
+    }
+
+    header {
+      background-color: #4a90e2;
+      color: #fff;
+      text-align: center;
+      padding: 20px 0;
+      position: relative;
+    }
+
+    #navContainer {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: calc(100vh - 80px);
+      padding: 20px;
+    }
+
+    .canvas {
+      position: relative;
+      border: 1px solid #ccc;
+      width: 70%;
+      height: 70%;
+      min-width: 300px;
+      min-height: 300px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .node {
+      position: absolute;
+      background-color: #fff;
+      border: 1px solid #333;
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      user-select: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .square {
+      border-radius: 4px;
+    }
+
+    .circle {
+      border-radius: 50%;
+    }
+
+    .triangle {
+      width: 0;
+      height: 0;
+      border-left: 50px solid transparent;
+      border-right: 50px solid transparent;
+      border-bottom: 50px solid #fff;
+    }
+
+    .diamond {
+      width: 100px;
+      height: 100px;
+      transform: rotate(45deg);
+      background-color: #fff;
+    }
+
+    .toolbox {
+      display: flex;
+      flex-direction: column;
+      margin-left: 20px;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    button {
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #4a90e2;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #357ab7;
+    }
+
+    input, select {
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .color-picker {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .color-option {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border 0.3s ease;
+    }
+
+    .color-option:hover,
+    .selected-color {
+      border: 2px solid #333;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .line {
+      position: absolute;
+      pointer-events: none;
+      background-color: #000;
+      transform-origin: 0 0;
+      width: 2px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>BrainMap</h1>
+    <p>Your Ultimate Brainstorming and Mind Mapping Tool</p>
+    <div id="navContainer">
+      <a href="../Student Organizer.html" target="_blank"><img src="../Images/Book Symbol.jpg" alt="Book Symbol" style="width: 40px; height: 40px;"></a>
+    </div>
+  </header>
+  <div class="container">
+    <div id="canvas" class="canvas">
+      <!-- Nodes and lines will be dynamically added here -->
+    </div>
+    <div id="toolbox" class="toolbox">
+      <button id="addNodeBtn">Add Node</button>
+      <button id="clearCanvasBtn">Clear Canvas</button>
+      <div class="color-picker">
+        <span>Node Color:</span>
+        <div class="color-option selected-color" style="background-color: #ffcccc;"></div>
+        <div class="color-option" style="background-color: #ccccff;"></div>
+        <div class="color-option" style="background-color: #ccffcc;"></div>
+        <div class="color-option" style="background-color: #ffff99;"></div>
+      </div>
+      <select id="shapeSelector">
+        <option value="circle">Circle</option>
+        <option value="square">Square</option>
+        <option value="rectangle">Rectangle</option>
+        <option value="diamond">Diamond</option>
+      </select>
+      <input type="text" id="nodeNameInput" placeholder="Enter node name">
+      <button id="renameNodeBtn">Rename Node</button>
+      <button id="exportBtn">Export</button>
+    </div>
+  </div>
+
+  <div id="exportModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Export Your Mind Map</h2>
+      <select id="exportFormat">
+        <option value="pdf">PDF</option>
+        <option value="image">Image</option>
+      </select>
+      <button id="exportConfirmBtn">Export</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.3/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const canvas = document.getElementById("canvas");
+      const addNodeBtn = document.getElementById("addNodeBtn");
+      const clearCanvasBtn = document.getElementById("clearCanvasBtn");
+      const exportBtn = document.getElementById("exportBtn");
+      const exportModal = document.getElementById("exportModal");
+      const exportConfirmBtn = document.getElementById("exportConfirmBtn");
+      const exportFormat = document.getElementById("exportFormat");
+      const modalClose = document.getElementsByClassName("close")[0];
+      const colorOptions = document.querySelectorAll(".color-option");
+      const shapeSelector = document.getElementById("shapeSelector");
+      const nodeNameInput = document.getElementById("nodeNameInput");
+      const renameNodeBtn = document.getElementById("renameNodeBtn");
+
+      let nodeCount = 0;
+      let isNodeDragging = false;
+      let selectedNode = null;
+      let startX = 0;
+      let startY = 0;
+      let selectedColorOption = document.querySelector(".selected-color");
+      let firstNode = null;
+      let lines = [];
+
+      // Open export modal
+      exportBtn.addEventListener("click", function () {
+        exportModal.style.display = "block";
+      });
+
+      // Close export modal
+      modalClose.addEventListener("click", function () {
+        exportModal.style.display = "none";
+      });
+
+      // Add node to canvas
+      addNodeBtn.addEventListener("click", function () {
+        const node = document.createElement("div");
+        node.className = "node";
+        node.id = `node-${++nodeCount}`;
+        node.style.left = "50px";
+        node.style.top = "50px";
+        node.style.backgroundColor = selectedColorOption.style.backgroundColor; // Use selected color option
+        switch (shapeSelector.value) {
+          case "circle":
+            node.classList.add("circle");
+            break;
+          case "square":
+            node.classList.add("square");
+            break;
+          case "rectangle":
+            node.classList.add("rectangle");
+            break;
+          case "diamond":
+            node.classList.add("diamond");
+            break;
+        }
+        canvas.appendChild(node);
+
+        // Prompt user to enter a name for the node
+        let nodeName = prompt("Enter node name:");
+        while (nodeName === null || nodeName.trim() === "") {
+          nodeName = prompt("Node name cannot be empty. Enter node name:");
+        }
+        node.textContent = nodeName;
+
+        // Enable node dragging
+        node.addEventListener("mousedown", function (e) {
+          isNodeDragging = true;
+          selectedNode = node;
+          startX = e.clientX - node.offsetLeft;
+          startY = e.clientY - node.offsetTop;
+        });
+
+        node.addEventListener("mouseup", function () {
+          isNodeDragging = false;
+        });
+
+        node.addEventListener("dblclick", function () {
+          const newName = prompt("Rename node:", node.textContent);
+          if (newName !== null && newName.trim() !== "") {
+            node.textContent = newName;
+          }
+        });
+
+        node.addEventListener("click", function () {
+          if (!firstNode) {
+            firstNode = node;
+          } else {
+            drawLine(firstNode, node);
+            firstNode = null;
+          }
+        });
+      });
+
+      // Event listener to handle color option selection
+      colorOptions.forEach(function(colorOption) {
+        colorOption.addEventListener("click", function() {
+          // Remove selected color class from previous selection
+          selectedColorOption.classList.remove("selected-color");
+          // Add selected color class to current selection
+          colorOption.classList.add("selected-color");
+          // Update selected color option reference
+          selectedColorOption = colorOption;
+        });
+      });
+
+      // Clear canvas
+      clearCanvasBtn.addEventListener("click", function () {
+        canvas.innerHTML = "";
+        nodeCount = 0;
+        lines = [];
+      });
+
+      // Handle mousemove event on the canvas
+      canvas.addEventListener("mousemove", function (e) {
+        if (isNodeDragging && selectedNode) {
+          // Move node
+          selectedNode.style.left = e.clientX - startX + "px";
+          selectedNode.style.top = e.clientY - startY + "px";
+          updateLines(selectedNode);
+        }
+      });
+
+      // Handle mousedown event on the canvas
+      canvas.addEventListener("mousedown", function (e) {
+        if (e.target.classList.contains("node")) {
+          // Start node dragging
+          isNodeDragging = true;
+          selectedNode = e.target;
+          startX = e.clientX - selectedNode.offsetLeft;
+          startY = e.clientY - selectedNode.offsetTop;
+        }
+      });
+
+      // Handle mouseup event on the canvas
+      canvas.addEventListener("mouseup", function () {
+        if (isNodeDragging && selectedNode) {
+          // End node dragging
+          isNodeDragging = false;
+        }
+      });
+
+      // Handle export confirmation
+      exportConfirmBtn.addEventListener("click", function () {
+        const format = exportFormat.value;
+        const exportContent = canvas;
+
+        html2canvas(exportContent).then(canvas => {
+          if (format === "pdf") {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('landscape');
+            pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+            pdf.save("mindmap.pdf");
+          } else if (format === "image") {
+            const link = document.createElement("a");
+            link.download = "mindmap.png";
+            link.href = canvas.toDataURL();
+            link.click();
+          }
+        });
+
+        exportModal.style.display = "none";
+      });
+
+      // Function to draw a line between two nodes
+      function drawLine(node1, node2) {
+        const line = document.createElement("div");
+        line.className = "line";
+        canvas.appendChild(line);
+
+        const lineData = {
+          element: line,
+          start: node1,
+          end: node2
+        };
+
+        lines.push(lineData);
+        updateLine(lineData);
+      }
+
+      // Function to update the position of a line
+      function updateLine(lineData) {
+        const rect1 = lineData.start.getBoundingClientRect();
+        const rect2 = lineData.end.getBoundingClientRect();
+        const canvasRect = canvas.getBoundingClientRect();
+
+        const x1 = rect1.left + rect1.width / 2 - canvasRect.left;
+        const y1 = rect1.top + rect1.height / 2 - canvasRect.top;
+        const x2 = rect2.left + rect2.width / 2 - canvasRect.left;
+        const y2 = rect2.top + rect2.height / 2 - canvasRect.top;
+
+        const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+        lineData.element.style.width = `${length}px`;
+        lineData.element.style.transform = `rotate(${angle}deg)`;
+        lineData.element.style.transformOrigin = "0 0";
+        lineData.element.style.left = `${x1}px`;
+        lineData.element.style.top = `${y1}px`;
+      }
+
+      // Function to update all lines connected to a node
+      function updateLines(node) {
+        lines.forEach(lineData => {
+          if (lineData.start === node || lineData.end === node) {
+            updateLine(lineData);
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

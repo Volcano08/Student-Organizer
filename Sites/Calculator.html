@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TI-36X Pro Calculator</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #333;
+        color: #fff;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        position: relative;
+    }
+    .calculator {
+        width: 320px;
+        background-color: #000;
+        border: 1px solid #666;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+    .display {
+        background-color: #333;
+        color: #0f0;
+        font-size: 2em;
+        padding: 10px;
+        text-align: right;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+    .button-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+    .button {
+        background-color: #555;
+        border: none;
+        color: #fff;
+        padding: 15px;
+        text-align: center;
+        font-size: 1em;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 22%;
+        transition: background-color 0.3s;
+    }
+    .button:active {
+        background-color: #777;
+    }
+    .button.wide {
+        width: 48%;
+    }
+    .button-row:last-child {
+        margin-bottom: 0;
+    }
+    .book-button {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+    .book-button img {
+        width: 40px;
+        height: auto;
+    }
+</style>
+</head>
+<body>
+<div class="calculator">
+    <div id="display" class="display">0</div>
+    <div class="button-row">
+        <button class="button" onclick="clearAll()">AC</button>
+        <button class="button" onclick="deleteLastChar()">DEL</button>
+        <button class="button" onclick="toggleDegrees()">Deg</button>
+        <button class="button" onclick="toggleRadians()">Rad</button>
+    </div>
+    <div class="button-row">
+        <button class="button" onclick="appendToDisplay('sin(')">sin</button>
+        <button class="button" onclick="appendToDisplay('cos(')">cos</button>
+        <button class="button" onclick="appendToDisplay('tan(')">tan</button>
+        <button class="button" onclick="appendToDisplay('/')">/</button>
+    </div>
+    <div class="button-row">
+        <button class="button" onclick="appendToDisplay('7')">7</button>
+        <button class="button" onclick="appendToDisplay('8')">8</button>
+        <button class="button" onclick="appendToDisplay('9')">9</button>
+        <button class="button" onclick="appendToDisplay('*')">*</button>
+    </div>
+    <div class="button-row">
+        <button class="button" onclick="appendToDisplay('4')">4</button>
+        <button class="button" onclick="appendToDisplay('5')">5</button>
+        <button class="button" onclick="appendToDisplay('6')">6</button>
+        <button class="button" onclick="appendToDisplay('-')">-</button>
+    </div>
+    <div class="button-row">
+        <button class="button" onclick="appendToDisplay('1')">1</button>
+        <button class="button" onclick="appendToDisplay('2')">2</button>
+        <button class="button" onclick="appendToDisplay('3')">3</button>
+        <button class="button" onclick="appendToDisplay('+')">+</button>
+    </div>
+    <div class="button-row">
+        <button class="button wide" onclick="appendToDisplay('0')">0</button>
+        <button class="button" onclick="appendToDisplay('.')">.</button>
+        <button class="button" onclick="calculate()">=</button>
+    </div>
+</div>
+<button class="book-button" onclick="goToStudentOrganizer()">
+    <img src="../Images/Book Symbol.jpg" alt="Book Symbol">
+</button>
+
+<script>
+    let degreesMode = true;
+
+    function toggleDegrees() {
+        degreesMode = true;
+        updateDisplay();
+    }
+
+    function toggleRadians() {
+        degreesMode = false;
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        let display = document.getElementById('display');
+        let currentValue = display.textContent;
+        if (degreesMode) {
+            display.textContent = currentValue.replace(/rad/g, '°');
+        } else {
+            display.textContent = currentValue.replace(/°/g, 'rad');
+        }
+    }
+
+    function appendToDisplay(value) {
+        let display = document.getElementById('display');
+        if (display.textContent === '0') {
+            display.textContent = value;
+        } else {
+            display.textContent += value;
+        }
+    }
+
+    function deleteLastChar() {
+        let display = document.getElementById('display');
+        display.textContent = display.textContent.slice(0, -1) || '0';
+    }
+
+    function clearAll() {
+        document.getElementById('display').textContent = '0';
+    }
+
+    function calculate() {
+        try {
+            let display = document.getElementById('display');
+            let equation = display.textContent;
+
+            // Custom trigonometric function evaluation
+            equation = equation.replace(/sin\((.*?)\)/g, (match, p1) => `calcSin(${p1})`)
+                               .replace(/cos\((.*?)\)/g, (match, p1) => `calcCos(${p1})`)
+                               .replace(/tan\((.*?)\)/g, (match, p1) => `calcTan(${p1})`);
+
+            let result = eval(equation);
+            display.textContent = result;
+        } catch (err) {
+            console.error("Error:", err);
+            document.getElementById('display').textContent = 'Error';
+        }
+    }
+
+    function calcSin(value) {
+        return Math.sin(degreesMode ? value * Math.PI / 180 : value);
+    }
+
+    function calcCos(value) {
+        return Math.cos(degreesMode ? value * Math.PI / 180 : value);
+    }
+
+    function calcTan(value) {
+        return Math.tan(degreesMode ? value * Math.PI / 180 : value);
+    }
+
+    function goToStudentOrganizer() {
+        window.location.href = '../Student Organizer.html';
+    }
+</script>
+</body>
+</html>

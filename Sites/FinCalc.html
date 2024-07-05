@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinCalc Helper</title>
+    <style>
+        body {
+            font-family: 'Open Sans', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        header {
+            background-color: #4CAF50;
+            padding: 20px;
+            text-align: center;
+            color: #fff;
+            position: relative;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        nav button {
+            background-color: #4CAF50;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 5px;
+            color: #fff;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        nav button.active {
+            background-color: #388E3C;
+            border: 1px solid #fff;
+        }
+
+        section {
+            display: none;
+            margin-bottom: 30px;
+        }
+
+        section.active {
+            display: block;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        form input[type="text"],
+        form input[type="number"],
+        form select {
+            width: calc(50% - 10px);
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        form p {
+            font-weight: bold;
+            color: #333;
+        }
+
+        form button {
+            display: block;
+            margin: 10px auto 0;
+            padding: 8px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        form button:hover {
+            background-color: #388E3C;
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #e0f2f1;
+            color: #333;
+        }
+
+        #bookIcon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        #bookIcon:hover {
+            transform: scale(1.1);
+        }
+
+        footer {
+            background-color: #222;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>FinCalc Helper</h1>
+        <p>A simple yet powerful financial calculator designed to assist individuals with various financial calculations.</p>
+        <a href="../Student Organizer.html" target="_blank">
+            <img src="../Images/Book Symbol.jpg" alt="Book Symbol" id="bookIcon">
+        </a>
+    </header>
+
+    <nav id="calculatorTabs">
+        <button onclick="openCalculator('loanCalculator')" class="active" aria-controls="loanCalculator">Loan Calculator</button>
+        <button onclick="openCalculator('savingsCalculator')" aria-controls="savingsCalculator">Savings Calculator</button>
+        <button onclick="openCalculator('budgetPlanner')" aria-controls="budgetPlanner">Budget Planner</button>
+        <button onclick="openCalculator('investmentROICalculator')" aria-controls="investmentROICalculator">Investment ROI Calculator</button>
+        <button onclick="openCalculator('currencyConverter')" aria-controls="currencyConverter">Currency Converter</button>
+    </nav>
+
+    <main>
+        <section id="loanCalculator" class="active">
+            <h2>Loan Calculator</h2>
+            <form id="loanForm">
+                <label for="loanAmount">Loan Amount:</label>
+                <input type="number" id="loanAmount" required>
+                <label for="interestRate">Interest Rate (%):</label>
+                <input type="number" id="interestRate" step="0.01" required>
+                <label for="loanTerm">Loan Term:</label>
+                <input type="number" id="loanTerm" required>
+                <label for="loanPeriod">Loan Period:</label>
+                <select id="loanPeriod">
+                    <option value="months">Months</option>
+                    <option value="years">Years</option>
+                </select>
+                <button type="button" onclick="calculateLoanPayment()">Calculate Monthly Payment</button>
+                <p>Monthly Payment: $<span id="loanMonthlyPayment">0.00</span></p>
+            </form>
+        </section>
+
+        <section id="savingsCalculator">
+            <h2>Savings Calculator</h2>
+            <form id="savingsForm">
+                <label for="initialDeposit">Initial Deposit:</label>
+                <input type="number" id="initialDeposit" required>
+                <label for="savingsInterestRate">Interest Rate (%):</label>
+                <input type="number" id="savingsInterestRate" step="0.01" required>
+                <label for="timePeriod">Time Period:</label>
+                <input type="number" id="timePeriod" required>
+                <label for="savingsPeriod">Savings Period:</label>
+                <select id="savingsPeriod">
+                    <option value="months">Months</option>
+                    <option value="years">Years</option>
+                </select>
+                <button type="button" onclick="calculateSavings()">Calculate Future Value</button>
+                <p>Future Value: $<span id="savingsFutureValue">0.00</span></p>
+            </form>
+        </section>
+
+        <section id="budgetPlanner">
+            <h2>Budget Planner</h2>
+            <form id="budgetForm">
+                <h3>Expenses</h3>
+                <div id="expenseFields">
+                    <div class="expense">
+                        <label for="expenseName1">Expense Name:</label>
+                        <input type="text" id="expenseName1" placeholder="Expense Name">
+                        <label for="expenseAmount1">Amount:</label>
+                        <input type="number" id="expenseAmount1" placeholder="Amount">
+                    </div>
+                </div>
+                <button type="button" onclick="addExpenseField()">Add Expense</button>
+
+                <h3>Incomes</h3>
+                <div id="incomeFields">
+                    <div class="income">
+                        <label for="incomeName1">Income Name:</label>
+                        <input type="text" id="incomeName1" placeholder="Income Name">
+                        <label for="incomeAmount1">Amount:</label>
+                        <input type="number" id="incomeAmount1" placeholder="Amount">
+                    </div>
+                </div>
+                <button type="button" onclick="addIncomeField()">Add Income</button>
+
+                <button type="button" onclick="calculateBudget()">Calculate</button>
+                <div id="budgetResult" class="results"></div>
+                <button type="button" onclick="resetBudget()">Reset Budget</button>
+                <button type="button" onclick="saveBudget()">Save Budget</button>
+            </form>
+        </section>
+
+        <section id="investmentROICalculator">
+            <h2>Investment ROI Calculator</h2>
+            <form id="roiForm">
+                <label for="initialInvestment">Initial Investment:</label>
+                <input type="number" id="initialInvestment" required>
+                <label for="investmentInterestRate">Interest Rate (%):</label>
+                <input type="number" id="investmentInterestRate" step="0.01" required>
+                <label for="investmentTimePeriod">Time Period:</label>
+                <input type="number" id="investmentTimePeriod" required>
+                <label for="investmentPeriod">Investment Period:</label>
+                <select id="investmentPeriod">
+                    <option value="months">Months</option>
+                    <option value="years">Years</option>
+                </select>
+                <button type="button" onclick="calculateROI()">Calculate ROI</button>
+                <p>ROI: $<span id="investmentROI">0.00</span></p>
+            </form>
+        </section>
+
+        <section id="currencyConverter">
+            <h2>Currency Converter</h2>
+            <form id="currencyConverterForm">
+                <label for="amountToConvert">Amount to Convert:</label>
+                <input type="number" id="amountToConvert" required>
+                <label for="fromCurrency">From Currency:</label>
+                <select id="fromCurrency">
+                    <option value="USD">US Dollar (USD)</option>
+                    <option value="EUR">Euro (EUR)</option>
+                    <option value="GBP">British Pound (GBP)</option>
+                    <option value="JPY">Japanese Yen (JPY)</option>
+                    <option value="AUD">Australian Dollar (AUD)</option>
+                    <option value="CAD">Canadian Dollar (CAD)</option>
+                </select>
+                <label for="toCurrency">To Currency:</label>
+                <select id="toCurrency">
+                    <option value="USD">US Dollar (USD)</option>
+                    <option value="EUR">Euro (EUR)</option>
+                    <option value="GBP">British Pound (GBP)</option>
+                    <option value="JPY">Japanese Yen (JPY)</option>
+                    <option value="AUD">Australian Dollar (AUD)</option>
+                    <option value="CAD">Canadian Dollar (CAD)</option>
+                </select>
+                <button type="button" onclick="convertCurrency()">Convert</button>
+                <p>Converted Amount: <span id="convertedAmount">0.00</span></p>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 FinCalc Helper. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('nav button').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    openCalculator(event.target.getAttribute('aria-controls'));
+                });
+            });
+
+            // Load budget info from local storage
+            loadBudgetInfo();
+        });
+
+        function openCalculator(calculatorId) {
+            document.querySelectorAll('section').forEach(section => section.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(button => button.classList.remove('active'));
+            document.getElementById(calculatorId).classList.add('active');
+            document.querySelector(`button[aria-controls="${calculatorId}"]`).classList.add('active');
+        }
+
+        function calculateLoanPayment() {
+            try {
+                let loanAmount = parseFloat(document.getElementById('loanAmount').value);
+                let interestRate = parseFloat(document.getElementById('interestRate').value) / 100;
+                let loanTerm = parseFloat(document.getElementById('loanTerm').value);
+                let loanPeriod = document.getElementById('loanPeriod').value;
+                if (loanPeriod === 'years') loanTerm *= 12;
+                let monthlyInterestRate = interestRate / 12;
+                let monthlyPayment = (loanAmount * monthlyInterestRate) / (1 - Math.pow(1 + monthlyInterestRate, -loanTerm));
+                document.getElementById('loanMonthlyPayment').innerText = monthlyPayment.toFixed(2);
+            } catch (error) {
+                console.error('Calculation error:', error);
+                alert('An error occurred while calculating the loan payment. Please check your inputs.');
+            }
+        }
+
+        function calculateSavings() {
+            try {
+                let initialDeposit = parseFloat(document.getElementById('initialDeposit').value);
+                let interestRate = parseFloat(document.getElementById('savingsInterestRate').value) / 100;
+                let timePeriod = parseFloat(document.getElementById('timePeriod').value);
+                let savingsPeriod = document.getElementById('savingsPeriod').value;
+                if (savingsPeriod === 'years') timePeriod *= 12;
+                let futureValue = initialDeposit * Math.pow(1 + interestRate / 12, timePeriod);
+                document.getElementById('savingsFutureValue').innerText = futureValue.toFixed(2);
+            } catch (error) {
+                console.error('Calculation error:', error);
+                alert('An error occurred while calculating the savings. Please check your inputs.');
+            }
+        }
+
+        function addExpenseField() {
+            let expenseFields = document.getElementById('expenseFields');
+            let expenseCount = expenseFields.querySelectorAll('.expense').length + 1;
+            let newExpenseField = document.createElement('div');
+            newExpenseField.classList.add('expense');
+            newExpenseField.innerHTML = `
+                <label for="expenseName${expenseCount}">Expense Name:</label>
+                <input type="text" id="expenseName${expenseCount}" placeholder="Expense Name">
+                <label for="expenseAmount${expenseCount}">Amount:</label>
+                <input type="number" id="expenseAmount${expenseCount}" placeholder="Amount">
+            `;
+            expenseFields.appendChild(newExpenseField);
+        }
+
+        function addIncomeField() {
+            let incomeFields = document.getElementById('incomeFields');
+            let incomeCount = incomeFields.querySelectorAll('.income').length + 1;
+            let newIncomeField = document.createElement('div');
+            newIncomeField.classList.add('income');
+            newIncomeField.innerHTML = `
+                <label for="incomeName${incomeCount}">Income Name:</label>
+                <input type="text" id="incomeName${incomeCount}" placeholder="Income Name">
+                <label for="incomeAmount${incomeCount}">Amount:</label>
+                <input type="number" id="incomeAmount${incomeCount}" placeholder="Amount">
+            `;
+            incomeFields.appendChild(newIncomeField);
+        }
+
+        function calculateBudget() {
+            try {
+                let totalExpenses = 0;
+                document.querySelectorAll('#budgetForm .expense input[type="number"]').forEach(input => {
+                    totalExpenses += parseFloat(input.value) || 0;
+                });
+
+                let totalIncomes = 0;
+                document.querySelectorAll('#budgetForm .income input[type="number"]').forEach(input => {
+                    totalIncomes += parseFloat(input.value) || 0;
+                });
+
+                let remainingBalance = totalIncomes - totalExpenses;
+                document.getElementById('budgetResult').innerHTML = `
+                    <p>Total Expenses: $${totalExpenses.toFixed(2)}</p>
+                    <p>Total Incomes: $${totalIncomes.toFixed(2)}</p>
+                    <p>Remaining Balance: $${remainingBalance.toFixed(2)}</p>
+                `;
+
+                let budgetInfo = { totalExpenses: totalExpenses.toFixed(2), totalIncomes: totalIncomes.toFixed(2), remainingBalance: remainingBalance.toFixed(2) };
+                localStorage.setItem('budgetInfo', JSON.stringify(budgetInfo));
+            } catch (error) {
+                console.error('Calculation error:', error);
+                alert('An error occurred while calculating the budget. Please check your inputs.');
+            }
+        }
+
+        function resetBudget() {
+            localStorage.removeItem('budgetInfo');
+            document.getElementById('budgetResult').innerHTML = '';
+            document.querySelectorAll('#budgetForm input[type="number"]').forEach(input => input.value = '');
+        }
+
+        function saveBudget() {
+            try {
+                let totalExpenses = parseFloat(document.getElementById('budgetResult').querySelectorAll('p')[0].innerText.split('$')[1]);
+                let totalIncomes = parseFloat(document.getElementById('budgetResult').querySelectorAll('p')[1].innerText.split('$')[1]);
+                let remainingBalance = parseFloat(document.getElementById('budgetResult').querySelectorAll('p')[2].innerText.split('$')[1]);
+
+                let budgetInfo = { totalExpenses: totalExpenses.toFixed(2), totalIncomes: totalIncomes.toFixed(2), remainingBalance: remainingBalance.toFixed(2) };
+                localStorage.setItem('budgetInfo', JSON.stringify(budgetInfo));
+                alert("Budget saved successfully!");
+            } catch (error) {
+                console.error('Save error:', error);
+                alert('An error occurred while saving the budget. Please try again.');
+            }
+        }
+
+        function loadBudgetInfo() {
+            try {
+                const budgetInfo = JSON.parse(localStorage.getItem('budgetInfo'));
+                if (budgetInfo) {
+                    document.getElementById('budgetResult').innerHTML = `
+                        <p>Total Expenses: $${budgetInfo.totalExpenses}</p>
+                        <p>Total Incomes: $${budgetInfo.totalIncomes}</p>
+                        <p>Remaining Balance: $${budgetInfo.remainingBalance}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+            }
+        }
+
+        async function convertCurrency() {
+            try {
+                let amountToConvert = parseFloat(document.getElementById('amountToConvert').value);
+                let fromCurrency = document.getElementById('fromCurrency').value;
+                let toCurrency = document.getElementById('toCurrency').value;
+
+                const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
+                const data = await response.json();
+
+                const exchangeRate = data.rates[toCurrency];
+                if (exchangeRate) {
+                    let convertedAmount = amountToConvert * exchangeRate;
+                    let currencySymbol = getCurrencySymbol(toCurrency);
+                    document.getElementById('convertedAmount').innerText = `${currencySymbol}${convertedAmount.toFixed(2)}`;
+                } else {
+                    throw new Error("Invalid currency code or conversion rate not available.");
+                }
+            } catch (error) {
+                console.error("Error converting currency:", error.message);
+                alert('An error occurred while converting the currency. Please try again.');
+            }
+        }
+
+        function getCurrencySymbol(currencyCode) {
+            const currencySymbols = { 'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'AUD': 'A$', 'CAD': 'C$' };
+            return currencySymbols[currencyCode] || currencyCode;
+        }
+    </script>
+</body>
+
+</html>

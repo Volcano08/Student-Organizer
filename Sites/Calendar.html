@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar Site</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      background: linear-gradient(to right, #ece9e6, #ffffff);
+      margin: 0;
+      padding: 0;
+      position: relative;
+    }
+
+    .calendar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      overflow-x: auto;
+    }
+
+    .month {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+      background-color: #fff;
+      width: 300px; /* Increased width to accommodate day labels */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .month-header {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .week {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    .day {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 30px;
+      height: 30px;
+      border: 1px solid #ccc;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .day:hover {
+      background-color: #f0f0f0;
+    }
+
+    .day-event {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 0, 0, 0.3);
+      pointer-events: none;
+    }
+
+    .blank-day {
+      width: 30px;
+      height: 30px;
+    }
+
+    .day-label {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 30px;
+      height: 30px;
+      font-weight: bold;
+      border: none;
+      background-color: transparent;
+    }
+
+    .calendar-container {
+      max-width: 900px; /* Increased width to accommodate day labels */
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .book-symbol {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+    }
+
+    .event-form,
+    .remove-form {
+      position: absolute;
+      top: 100px;
+      display: none;
+      z-index: 999;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .event-form {
+      left: 10px;
+    }
+
+    .remove-form {
+      left: 140px;
+    }
+
+    .event-form input[type="text"],
+    .event-form input[type="date"],
+    .event-form button,
+    .remove-form input[type="text"],
+    .remove-form button {
+      margin-right: 5px;
+      border: 1px solid #ccc;
+      padding: 5px;
+    }
+
+    .day-details {
+      position: absolute;
+      top: -50px;
+      background-color: #fff;
+      border: 2px solid #000;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    #add-event-button-container {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 999;
+    }
+
+    #remove-event-button-container {
+      position: absolute;
+      top: 10px;
+      left: 140px;
+      z-index: 999;
+    }
+
+    .checkbox-container {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="add-event-button-container">
+    <button id="add-event-button">
+      <img src="../Images/AddEvent.jpg" alt="Add Event" style="width: 50px; height: auto;">
+    </button>
+  </div>
+
+  <div id="remove-event-button-container">
+    <button id="remove-event-button">
+      <img src="../Images/RemoveEvent.jpg" alt="Remove Event" style="width: 50px; height: auto;">
+    </button>
+  </div>
+
+  <div class="event-form">
+    <input type="text" id="event-name" placeholder="Event Name">
+    <input type="date" id="event-date">
+    <button id="submit-event-button">Submit</button>
+  </div>
+
+  <div class="remove-form">
+    <input type="text" id="remove-event-name" placeholder="Event Name">
+    <button id="remove-submit-button">Remove</button>
+  </div>
+
+  <div class="book-symbol">
+    <a href="../Student Organizer.html">
+      <img src="../Images/Book Symbol.jpg" alt="Book Symbol" style="width: 50px; height: auto;">
+    </a>
+  </div>
+  <div class="calendar-container">
+    <h1>Calendar Site</h1>
+    <div class="calendar"></div>
+  </div>
+
+  <div class="day-details" id="day-details-box" style="display: none;">
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const calendarContainer = document.querySelector('.calendar');
+      const eventNameInput = document.getElementById('event-name');
+      const eventDateInput = document.getElementById('event-date');
+      const addEventButton = document.getElementById('add-event-button');
+      const submitEventButton = document.getElementById('submit-event-button');
+      const eventForm = document.querySelector('.event-form');
+      const removeEventButton = document.getElementById('remove-event-button');
+      const removeForm = document.querySelector('.remove-form');
+      const removeSubmitButton = document.getElementById('remove-submit-button');
+      const removeEventNameInput = document.getElementById('remove-event-name');
+      const dayDetailsBox = document.getElementById('day-details-box');
+
+      let events = JSON.parse(localStorage.getItem('events')) || {};
+
+      function saveEvents() {
+        localStorage.setItem('events', JSON.stringify(events));
+      }
+
+      function addEventToCalendar(eventDate, eventName) {
+        const formattedDate = eventDate.toISOString().split('T')[0];
+        events[formattedDate] = events[formattedDate] || [];
+        events[formattedDate].push(eventName);
+        saveEvents();
+        renderCalendar();
+      }
+
+      function removeEventFromCalendar(eventName) {
+        for (const date in events) {
+          events[date] = events[date].filter(event => event !== eventName);
+          if (events[date].length === 0) {
+            const dayElement = document.querySelector(`.day[data-date="${date}"]`);
+            if (dayElement) {
+              dayElement.style.backgroundColor = '#fff';
+            }
+          }
+        }
+        saveEvents();
+        renderCalendar();
+      }
+
+      function displayEventsForDay(dayElement, formattedDate) {
+        const eventsForDay = events[formattedDate];
+        if (eventsForDay && eventsForDay.length > 0) {
+          const eventList = document.createElement('ul');
+          eventsForDay.forEach(event => {
+            const eventItem = document.createElement('li');
+            eventItem.textContent = event;
+            eventList.appendChild(eventItem);
+          });
+          dayDetailsBox.innerHTML = '';
+          dayDetailsBox.appendChild(eventList);
+          dayDetailsBox.style.display = 'block';
+          const dayPosition = dayElement.getBoundingClientRect();
+          dayDetailsBox.style.left = `${dayPosition.left}px`;
+          dayDetailsBox.style.top = `${dayPosition.top - dayDetailsBox.offsetHeight}px`;
+        } else {
+          dayElement.style.backgroundColor = '#fff';
+          dayDetailsBox.style.display = 'none';
+        }
+      }
+
+      function renderCalendar() {
+        calendarContainer.innerHTML = '';
+
+        const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        for (let year = 2024; year <= 2030; year++) {
+          for (let month = 0; month < 12; month++) {
+            const monthElement = document.createElement('div');
+            monthElement.classList.add('month');
+            monthElement.dataset.year = year;
+            monthElement.dataset.month = month + 1;
+
+            const monthHeader = document.createElement('div');
+            monthHeader.classList.add('month-header');
+            monthHeader.textContent = `${new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long' })} ${year}`;
+            monthElement.appendChild(monthHeader);
+
+            const weekElement = document.createElement('div');
+            weekElement.classList.add('week');
+            dayLabels.forEach(label => {
+              const dayLabelElement = document.createElement('div');
+              dayLabelElement.classList.add('day-label');
+              dayLabelElement.textContent = label;
+              weekElement.appendChild(dayLabelElement);
+            });
+            monthElement.appendChild(weekElement);
+
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            let dayCounter = 1;
+
+            for (let i = 0; i < 6; i++) { // 6 rows to cover all possible weeks in a month
+              const weekElement = document.createElement('div');
+              weekElement.classList.add('week');
+
+              for (let j = 0; j < 7; j++) {
+                if (i === 0 && j < firstDayOfMonth) {
+                  const blankDayElement = document.createElement('div');
+                  blankDayElement.classList.add('blank-day');
+                  weekElement.appendChild(blankDayElement);
+                } else if (dayCounter <= daysInMonth) {
+                  const dayElement = document.createElement('div');
+                  dayElement.classList.add('day');
+                  dayElement.textContent = dayCounter;
+                  dayElement.dataset.date = new Date(year, month, dayCounter).toISOString().split('T')[0];
+                  const formattedDate = dayElement.dataset.date;
+
+                  if (events[formattedDate] && events[formattedDate].length > 0) {
+                    const eventIndicator = document.createElement('div');
+                    eventIndicator.classList.add('day-event');
+                    dayElement.appendChild(eventIndicator);
+                    dayElement.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+                  } else {
+                    dayElement.style.backgroundColor = '#fff';
+                  }
+
+                  weekElement.appendChild(dayElement);
+                  dayCounter++;
+                } else {
+                  const blankDayElement = document.createElement('div');
+                  blankDayElement.classList.add('blank-day');
+                  weekElement.appendChild(blankDayElement);
+                }
+              }
+
+              monthElement.appendChild(weekElement);
+              if (dayCounter > daysInMonth) break;
+            }
+
+            calendarContainer.appendChild(monthElement);
+          }
+        }
+      }
+
+      calendarContainer.addEventListener('click', function (event) {
+        const dayElement = event.target.closest('.day');
+        if (dayElement) {
+          const formattedDate = dayElement.dataset.date;
+          displayEventsForDay(dayElement, formattedDate);
+        }
+      });
+
+      addEventButton.addEventListener('click', function () {
+        eventForm.style.display = 'block';
+        removeForm.style.display = 'none';
+      });
+
+      removeEventButton.addEventListener('click', function () {
+        removeForm.style.display = 'block';
+        eventForm.style.display = 'none';
+      });
+
+      submitEventButton.addEventListener('click', function () {
+        const eventName = eventNameInput.value.trim();
+        const eventDate = new Date(eventDateInput.value);
+        if (eventName && eventDate && !isNaN(eventDate.getTime())) {
+          addEventToCalendar(eventDate, eventName);
+          eventNameInput.value = '';
+          eventDateInput.value = '';
+          eventForm.style.display = 'none';
+        } else {
+          alert('Please enter a valid event name and date.');
+        }
+      });
+
+      removeSubmitButton.addEventListener('click', function () {
+        const eventName = removeEventNameInput.value.trim();
+        if (eventName) {
+          removeEventFromCalendar(eventName);
+          removeForm.style.display = 'none';
+        } else {
+          alert('Please enter an event name to remove.');
+        }
+      });
+
+      renderCalendar();
+    });
+  </script>
+</body>
+
+</html>

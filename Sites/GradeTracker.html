@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeMaster: Your Personal Grade Tracker and Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #333;
+      color: #fff;
+      line-height: 1.6;
+    }
+
+    header, footer {
+      background-color: #222;
+      color: #fff;
+      padding: 20px;
+      position: relative;
+      text-align: center;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    section {
+      margin-bottom: 30px;
+    }
+
+    h1, h2 {
+      color: #fff;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      max-width: 400px;
+      background-color: #444;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      margin-bottom: 30px;
+    }
+
+    input, select {
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #555;
+      border-radius: 4px;
+      outline: none;
+      background-color: #555;
+      color: #fff;
+    }
+
+    input:focus, select:focus {
+      border-color: #777;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #555;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #777;
+    }
+
+    .tab {
+      display: none;
+    }
+
+    canvas {
+      background-color: #222;
+      border: 1px solid #444;
+    }
+
+    #bookSymbolLink {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+    #resetButton {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #555;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      display: block;
+      margin: 0 auto 30px;
+    }
+
+    #resetButton:hover {
+      background-color: #777;
+    }
+
+    #class-tabs button {
+      background-color: #444;
+      border: none;
+      color: #fff;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin-right: 5px;
+      border-radius: 4px;
+    }
+
+    #class-tabs button.active, #class-tabs button:hover {
+      background-color: #666;
+    }
+
+    @media (max-width: 600px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      #bookSymbolLink {
+        position: static;
+        margin-top: 10px;
+      }
+
+      form {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>GradeMaster</h1>
+    <div>
+      <a href="../Student%20Organizer.html" id="bookSymbolLink"><img src="../Images/Book Symbol.jpg" alt="Book Symbol" style="width: 50px; height: 50px;"></a>
+    </div>
+  </header>
+
+  <button id="resetButton" onclick="resetData()">Reset</button>
+
+  <main>
+    <nav id="class-tabs">
+      <button onclick="openClass(event, 'class-1')" aria-controls="class-1">Class 1</button>
+      <button onclick="openClass(event, 'class-2')" aria-controls="class-2">Class 2</button>
+      <button onclick="openClass(event, 'class-3')" aria-controls="class-3">Class 3</button>
+      <button onclick="openClass(event, 'class-4')" aria-controls="class-4">Class 4</button>
+    </nav>
+
+    <section id="class-1" class="tab" aria-labelledby="class-1">
+      <h2>Class 1</h2>
+      <form id="grade-form-1">
+        <input type="text" id="course-name-1" placeholder="Course Name" required aria-label="Course Name">
+        <input type="text" id="assignment-name-1" placeholder="Assignment Name" required aria-label="Assignment Name">
+        <input type="number" id="grade-1" placeholder="Grade" min="0" max="100" step="any" required aria-label="Grade">
+        <input type="number" id="weight-1" placeholder="Weight" min="0" step="any" required aria-label="Weight">
+        <button type="submit" aria-label="Add Assignment">Add Assignment</button>
+      </form>
+      <ul id="assignment-list-1" aria-label="Assignment List"></ul>
+    </section>
+
+    <section id="class-2" class="tab" aria-labelledby="class-2">
+      <h2>Class 2</h2>
+      <form id="grade-form-2">
+        <input type="text" id="course-name-2" placeholder="Course Name" required aria-label="Course Name">
+        <input type="text" id="assignment-name-2" placeholder="Assignment Name" required aria-label="Assignment Name">
+        <input type="number" id="grade-2" placeholder="Grade" min="0" max="100" step="any" required aria-label="Grade">
+        <input type="number" id="weight-2" placeholder="Weight" min="0" step="any" required aria-label="Weight">
+        <button type="submit" aria-label="Add Assignment">Add Assignment</button>
+      </form>
+      <ul id="assignment-list-2" aria-label="Assignment List"></ul>
+    </section>
+
+    <section id="class-3" class="tab" aria-labelledby="class-3">
+      <h2>Class 3</h2>
+      <form id="grade-form-3">
+        <input type="text" id="course-name-3" placeholder="Course Name" required aria-label="Course Name">
+        <input type="text" id="assignment-name-3" placeholder="Assignment Name" required aria-label="Assignment Name">
+        <input type="number" id="grade-3" placeholder="Grade" min="0" max="100" step="any" required aria-label="Grade">
+        <input type="number" id="weight-3" placeholder="Weight" min="0" step="any" required aria-label="Weight">
+        <button type="submit" aria-label="Add Assignment">Add Assignment</button>
+      </form>
+      <ul id="assignment-list-3" aria-label="Assignment List"></ul>
+    </section>
+
+    <section id="class-4" class="tab" aria-labelledby="class-4">
+      <h2>Class 4</h2>
+      <form id="grade-form-4">
+        <input type="text" id="course-name-4" placeholder="Course Name" required aria-label="Course Name">
+        <input type="text" id="assignment-name-4" placeholder="Assignment Name" required aria-label="Assignment Name">
+        <input type="number" id="grade-4" placeholder="Grade" min="0" max="100" step="any" required aria-label="Grade">
+        <input type="number" id="weight-4" placeholder="Weight" min="0" step="any" required aria-label="Weight">
+        <button type="submit" aria-label="Add Assignment">Add Assignment</button>
+      </form>
+      <ul id="assignment-list-4" aria-label="Assignment List"></ul>
+    </section>
+
+    <section id="grade-scales">
+      <h2>Customizable Grade Scales</h2>
+      <select id="grade-scale" aria-label="Grade Scale">
+        <option value="letter">Letter Grades</option>
+        <option value="percentage">Percentage</option>
+        <option value="points">Points</option>
+      </select>
+    </section>
+
+    <section id="automatic-calculations">
+      <h2>Automatic Calculations</h2>
+      <p>Cumulative Average: <span id="cumulative-average"></span></p>
+      <p>Weighted Grade: <span id="weighted-grade"></span></p>
+      <p>GPA: <span id="gpa"></span></p>
+    </section>
+
+    <section id="progress-charts">
+      <h2>Interactive Progress Charts</h2>
+      <canvas id="progress-chart" width="400" height="200" aria-label="Progress Chart"></canvas>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2024 GradeMaster. All rights reserved.</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const classTabs = document.getElementById('class-tabs');
+    const gradeScales = document.getElementById('grade-scales');
+    const automaticCalculations = document.getElementById('automatic-calculations');
+    const progressCharts = document.getElementById('progress-charts');
+
+    let classes = {};
+
+    function openClass(evt, className) {
+      const tabs = document.getElementsByClassName('tab');
+      for (let tab of tabs) {
+        tab.style.display = 'none';
+      }
+      const buttons = document.querySelectorAll('#class-tabs button');
+      for (let button of buttons) {
+        button.classList.remove('active');
+      }
+      document.getElementById(className).style.display = 'block';
+      evt.currentTarget.classList.add('active');
+      displayAssignments(className);
+    }
+
+    document.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        const className = this.getAttribute('id').replace('grade-form-', '');
+        const courseName = document.getElementById(`course-name-${className}`).value;
+        const assignmentName = document.getElementById(`assignment-name-${className}`).value;
+        const grade = parseFloat(document.getElementById(`grade-${className}`).value);
+        const weight = parseFloat(document.getElementById(`weight-${className}`).value);
+
+        if (!classes[className]) {
+          classes[className] = [];
+        }
+        classes[className].push({ courseName, assignmentName, grade, weight });
+
+        displayAssignments(className);
+        this.reset();
+      });
+    });
+
+    function displayAssignments(className) {
+      const assignmentList = document.querySelector(`#assignment-list-${className}`);
+      if (!classes[className]) {
+        assignmentList.innerHTML = '<p>No assignments added yet.</p>';
+        return;
+      }
+      assignmentList.innerHTML = '';
+      classes[className].forEach(function(assignment, index) {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${assignment.courseName} - ${assignment.assignmentName}: ${assignment.grade}`;
+        assignmentList.appendChild(listItem);
+      });
+      updateCalculations(className);
+      updateProgressChart(className);
+      saveToLocalStorage();
+    }
+
+    function calculateCumulativeAverage(className) {
+      let total = 0;
+      let totalWeight = 0;
+      classes[className].forEach(function(assignment) {
+        total += assignment.grade * assignment.weight;
+        totalWeight += assignment.weight;
+      });
+      return total / totalWeight;
+    }
+
+    function calculateWeightedGrade(className) {
+      return calculateCumulativeAverage(className);
+    }
+
+    function calculateGPA(className) {
+      const cumulativeAvg = calculateCumulativeAverage(className);
+      if (cumulativeAvg >= 90) return 4.0;
+      else if (cumulativeAvg >= 80) return 3.0;
+      else if (cumulativeAvg >= 70) return 2.0;
+      else if (cumulativeAvg >= 60) return 1.0;
+      else return 0.0;
+    }
+
+    function updateCalculations(className) {
+      const scale = document.getElementById('grade-scale').value;
+      let classAverage;
+      if (scale === 'letter') {
+        classAverage = calculateGPA(className);
+      } else if (scale === 'percentage') {
+        classAverage = calculateCumulativeAverage(className);
+      } else if (scale === 'points') {
+        classAverage = calculateWeightedGrade(className);
+      }
+      document.getElementById(`cumulative-average`).textContent = classAverage.toFixed(2);
+      document.getElementById(`weighted-grade`).textContent = classAverage.toFixed(2);
+      document.getElementById(`gpa`).textContent = classAverage.toFixed(2);
+    }
+
+    function updateProgressChart(className) {
+      const ctx = document.getElementById('progress-chart').getContext('2d');
+      const assignments = classes[className];
+      const grades = assignments.map(assignment => assignment.grade);
+      const dates = Array.from({ length: grades.length }, (_, i) => `Assignment ${i + 1}`);
+      
+      if (window.progressChart) {
+        window.progressChart.destroy();
+      }
+
+      window.progressChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: dates,
+          datasets: [{
+            label: 'Grades',
+            data: grades,
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    function saveToLocalStorage() {
+      localStorage.setItem('classes', JSON.stringify(classes));
+    }
+
+    function loadFromLocalStorage() {
+      const savedClasses = localStorage.getItem('classes');
+      if (savedClasses) {
+        classes = JSON.parse(savedClasses);
+        Object.keys(classes).forEach(className => displayAssignments(className));
+      }
+    }
+
+    function resetData() {
+      classes = {};
+      localStorage.removeItem('classes');
+      document.querySelectorAll('.tab ul').forEach(ul => ul.innerHTML = '');
+      document.querySelectorAll('.tab span').forEach(span => span.textContent = '');
+      if (window.progressChart) {
+        window.progressChart.destroy();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadFromLocalStorage();
+      const initialEvent = new Event('click');
+      document.querySelector('#class-tabs button').dispatchEvent(initialEvent);
+    });
+  </script>
+</body>
+</html>
